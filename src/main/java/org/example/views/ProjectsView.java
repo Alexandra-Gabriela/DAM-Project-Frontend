@@ -1,6 +1,5 @@
 package org.example.views;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.combobox.ComboBox;
@@ -68,9 +67,11 @@ public class ProjectsView extends VerticalLayout {
         projectGrid.addComponentColumn(proiect -> {
             Button editButton = new Button("Edit", e -> showAddProjectDialog(proiect));
             Button deleteButton = new Button("Delete", e -> {
-                controller.deleteProject(proiect.getId());
-                refreshProjects();
-                Notification.show("Proiect șters!");
+                if (confirm("Ești sigur că vrei să ștergi acest proiect?")) {
+                    controller.deleteProject(proiect.getId());
+                    refreshProjects();
+                    Notification.show("Proiect șters!");
+                }
             });
 
             deleteButton.getStyle().set("color", "red");
@@ -107,9 +108,12 @@ public class ProjectsView extends VerticalLayout {
         dataFinalizarePicker.setWidth("48%");
         liderComboBox.setWidth("48%");
 
+        liderComboBox.setItems(getAllLideri());
+        liderComboBox.setItemLabelGenerator(UtilizatorDTO::getNume);
+
         if (proiect != null) {
-            denumireField.setValue(proiect.getDenumire());
-            descriereField.setValue(proiect.getDescriere());
+            denumireField.setValue(proiect.getDenumire() != null ? proiect.getDenumire() : "");
+            descriereField.setValue(proiect.getDescriere() != null ? proiect.getDescriere() : "");
             dataInceperePicker.setValue(proiect.getDataIncepere() != null
                     ? proiect.getDataIncepere().toInstant().atZone(ZoneId.systemDefault()).toLocalDate() : null);
             dataFinalizarePicker.setValue(proiect.getDataFinalizare() != null
@@ -117,8 +121,6 @@ public class ProjectsView extends VerticalLayout {
             liderComboBox.setValue(proiect.getLider());
         }
 
-        liderComboBox.setItems(getAllLideri());
-        liderComboBox.setItemLabelGenerator(UtilizatorDTO::getNume);
 
         formLayout.add(denumireField, descriereField, dataInceperePicker, dataFinalizarePicker, liderComboBox);
 
@@ -132,16 +134,19 @@ public class ProjectsView extends VerticalLayout {
                     ? java.sql.Date.valueOf(dataFinalizarePicker.getValue()) : null);
             proiectFinal.setLider(liderComboBox.getValue());
 
-            controller.saveProject(proiectFinal);
-            refreshProjects();
-            Notification.show("Proiect salvat!");
+            try {
+                controller.saveProject(proiectFinal);
+                refreshProjects();
+                Notification.show("Proiect salvat cu succes!");
+            } catch (Exception ex) {
+                Notification.show("Eroare la salvarea proiectului: " + ex.getMessage());
+            }
             dialog.close();
         });
 
         Button cancelButton = new Button("Cancel", e -> dialog.close());
 
         HorizontalLayout buttonsLayout = new HorizontalLayout(saveButton, cancelButton);
-
         VerticalLayout content = new VerticalLayout(formLayout, buttonsLayout);
         content.setSpacing(true);
         dialog.add(content);
@@ -164,5 +169,10 @@ public class ProjectsView extends VerticalLayout {
             e.printStackTrace();
             return List.of();
         }
+    }
+
+    private boolean confirm(String message) {
+
+        return true;
     }
 }
