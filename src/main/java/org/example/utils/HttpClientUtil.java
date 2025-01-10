@@ -95,4 +95,35 @@ public class HttpClientUtil {
             e.printStackTrace();
         }
     }
+    public static <T> T put(String url, Object body, Class<T> responseType) throws Exception {
+        String response = null;
+        try {
+            HttpClient client = HttpClient.newHttpClient();
+
+            String jsonBody = OBJECT_MAPPER.writeValueAsString(body);
+
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(url))
+                    .header("Content-Type", "application/json")
+                    .PUT(HttpRequest.BodyPublishers.ofString(jsonBody))
+                    .build();
+
+            HttpResponse<String> httpResponse = client.send(request, HttpResponse.BodyHandlers.ofString());
+            response = httpResponse.body();
+
+            System.out.println("Răspuns brut de la server: " + response);
+
+            if (httpResponse.statusCode() != 200) {
+                throw new RuntimeException("Eroare HTTP: " + httpResponse.statusCode());
+            }
+
+            return OBJECT_MAPPER.readValue(response, responseType);
+
+        } catch (Exception e) {
+            System.out.println("Eroare în metoda put: " + e.getMessage());
+            System.out.println("Răspuns brut: " + response);
+            throw e;
+        }
+    }
+
 }

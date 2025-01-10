@@ -6,6 +6,15 @@ public class UtilizatorDTO {
     private int userId;
     private String nume;
     private TipUtilizator tipUtilizator;
+    private String email;
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
 
     public UtilizatorDTO() {
     }
