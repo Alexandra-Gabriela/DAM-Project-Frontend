@@ -20,14 +20,18 @@ public class TaskController {
     }
 
     public void saveTask(TaskDTO task) {
-        if (task.getIdTask()==0) {
+        if (task.getIdTask() == 0) {
             taskService.adaugaTask(task);
         } else {
-            taskService.adaugaTask(task); // Dacă ai un PUT endpoint, folosește-l aici.
+            taskService.actualizeazaTask(task);
         }
     }
 
-    public void deleteTask(Long idTask) {
+    public void deleteTask(int idTask) {
         taskService.stergeTask(idTask);
+    }
+
+    public void schimbareStatusTask(int taskId, String statusNou) {
+        taskService.schimbareStatusTask(taskId, statusNou);
     }
 }

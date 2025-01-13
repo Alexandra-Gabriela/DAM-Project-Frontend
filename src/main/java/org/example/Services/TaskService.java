@@ -16,20 +16,27 @@ public class TaskService {
     }
 
     public List<TaskDTO> getToateTaskurile() {
-        String url = "http://localhost:8083/rest/servicii/taskuri";
-
+        String url = "http://localhost:8083/team/rest/servicii/taskuri";
         return List.of(restTemplate.getForObject(url, TaskDTO[].class));
     }
 
     public TaskDTO adaugaTask(TaskDTO task) {
-        String url = "http://localhost:8083/rest/servicii/taskuri";
-
+        String url = "http://localhost:8083/team/rest/servicii/taskuri";
         return restTemplate.postForObject(url, task, TaskDTO.class);
     }
 
-    public void stergeTask(Long id) {
-        String url = "http://localhost:8083/rest/servicii/taskuri"
-        + id;
+    public void actualizeazaTask(TaskDTO task) {
+        String url = "http://localhost:8083/team/rest/servicii/taskuri/" + task.getIdTask();
+        restTemplate.put(url, task);
+    }
+
+    public void stergeTask(int id) {
+        String url = "http://localhost:8083/team/rest/servicii/taskuri/" + id;
         restTemplate.delete(url);
+    }
+
+    public void schimbareStatusTask(int taskId, String statusNou) {
+        String url = "http://localhost:8083/team/rest/servicii/taskuri/" + taskId + "/status";
+        restTemplate.put(url, statusNou);
     }
 }

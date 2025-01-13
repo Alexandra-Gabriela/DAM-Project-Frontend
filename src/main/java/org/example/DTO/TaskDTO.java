@@ -1,5 +1,6 @@
 package org.example.DTO;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.validation.constraints.NotNull;
 
 import java.time.LocalDate;
@@ -10,6 +11,8 @@ public class TaskDTO {
     private String denumire;
     private String descriere;
     private Status status;
+    @NotNull(message = "Deadline nu poate fi null")
+    @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate deadline;
 
     @NotNull(message = "Task must have an assigned user")

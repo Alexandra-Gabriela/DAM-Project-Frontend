@@ -64,7 +64,7 @@ public class TaskBoardView extends VerticalLayout {
             Button editButton = new Button("Edit", e -> showAddTaskDialog(task));
             Button deleteButton = new Button("Delete", e -> {
                 if (confirm("Ești sigur că vrei să ștergi acest task?")) {
-                    taskController.deleteTask((long) task.getIdTask());
+                    taskController.deleteTask(task.getIdTask());
                     refreshTasks();
                     Notification.show("Task șters!");
                 }
@@ -124,6 +124,11 @@ public class TaskBoardView extends VerticalLayout {
             finalTask.setDescriere(descriereField.getValue());
             finalTask.setStatus(statusComboBox.getValue());
             finalTask.setDeadline(deadlinePicker.getValue());
+            if (deadlinePicker.getValue() == null) {
+                Notification.show("Te rog să selectezi o dată validă pentru deadline!");
+                return;
+            }
+
             finalTask.setMembru(membruComboBox.getValue());
 
             try {
