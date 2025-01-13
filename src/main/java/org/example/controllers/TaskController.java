@@ -1,10 +1,12 @@
 package org.example.controllers;
 
+import org.example.DTO.Status;
 import org.example.DTO.TaskDTO;
 import org.example.Services.TaskService;
 import org.springframework.stereotype.Controller;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Controller
 public class TaskController {
@@ -33,5 +35,11 @@ public class TaskController {
 
     public void schimbareStatusTask(int taskId, String statusNou) {
         taskService.schimbareStatusTask(taskId, statusNou);
+    }
+    public List<TaskDTO> getTasksByStatus(Status status) {
+        return taskService.getToateTaskurile()
+                .stream()
+                .filter(task -> task.getStatus() == status)
+                .collect(Collectors.toList());
     }
 }

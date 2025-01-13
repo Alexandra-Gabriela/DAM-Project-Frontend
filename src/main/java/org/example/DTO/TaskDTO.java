@@ -6,12 +6,12 @@ import jakarta.validation.constraints.NotNull;
 import java.time.LocalDate;
 
 public class TaskDTO {
-    @NotNull(message = "Task ID is required")
+
     private int idTask;
     private String denumire;
     private String descriere;
     private Status status;
-    @NotNull(message = "Deadline nu poate fi null")
+
     @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate deadline;
 
