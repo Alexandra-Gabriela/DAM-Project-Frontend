@@ -15,10 +15,8 @@ public class MainView extends AppLayout {
 
     public MainView() {
         Tabs tabs = new Tabs(
-                createTab("Proiecte", ProjectsView.class),
-                // Adaugă alte taburi pentru pagini adiționale,
-                createTab("Departamente",DepartamenteView.class),
-                createTab("Echipe", EchipeView.class)
+                createTab("Proiecte", ProjectsView.class)
+                // Adaugă alte taburi pentru pagini adiționale
         );
         tabs.setOrientation(Tabs.Orientation.HORIZONTAL);
         addToNavbar(tabs);

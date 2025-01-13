@@ -2,12 +2,15 @@ package org.example.DTO;
 
 import jakarta.validation.constraints.NotNull;
 
+import java.time.LocalDate;
+
 public class TaskDTO {
     @NotNull(message = "Task ID is required")
     private int idTask;
     private String denumire;
     private String descriere;
-    private String status;
+    private Status status;
+    private LocalDate deadline;
 
     @NotNull(message = "Task must have an assigned user")
     private UtilizatorDTO membru;
@@ -40,11 +43,11 @@ public class TaskDTO {
         this.descriere = descriere;
     }
 
-    public String getStatus() {
+    public Status getStatus() {
         return status;
     }
 
-    public void setStatus(String status) {
+    public void setStatus(Status status) {
         this.status = status;
     }
 
@@ -56,14 +59,22 @@ public class TaskDTO {
         this.membru = membru;
     }
 
-    // toString
+    public LocalDate getDeadline() {
+        return deadline;
+    }
+
+    public void setDeadline(LocalDate deadline) {
+        this.deadline = deadline;
+    }
+
     @Override
     public String toString() {
         return "TaskDTO{" +
                 "idTask=" + idTask +
                 ", denumire='" + denumire + '\'' +
                 ", descriere='" + descriere + '\'' +
-                ", status='" + status + '\'' +
+                ", status=" + status +
+                ", deadline=" + deadline +
                 ", membru=" + membru +
                 '}';
     }
