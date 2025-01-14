@@ -1,5 +1,6 @@
 package org.example;
 
+import com.vaadin.flow.component.dependency.CssImport;
 import com.vaadin.flow.component.page.AppShellConfigurator;
 import com.vaadin.flow.component.page.BodySize;
 import com.vaadin.flow.component.page.Push;
@@ -10,5 +11,6 @@ import org.springframework.stereotype.Component;
 @Push
 @BodySize(height = "100vh", width = "100vw")
 @PWA(name = "Calendar App", shortName = "Calendar")
+//@CssImport("./styles/styles.css")
 public class AppShellConfig implements AppShellConfigurator {
 }

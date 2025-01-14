@@ -1,84 +1,159 @@
 package org.example.views;
 
+import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.datepicker.DatePicker;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Span;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.Route;
-import elemental.json.Json;
-import elemental.json.JsonArray;
-import elemental.json.JsonObject;
+import org.example.DTO.TaskDTO;
+import org.example.controllers.TaskController;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import java.time.LocalDate;
+import java.time.temporal.WeekFields;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Route(value = "", layout = MainView.class)
 public class DefaultView extends Div {
-    public DefaultView() {
+
+    private Div calendarContainer;
+    private LocalDate selectedDate;
+
+    @Autowired
+    private TaskController taskController; // Injectează controller-ul de task-uri
+
+    public DefaultView(TaskController taskController) {
+        this.taskController = taskController;
         setSizeFull();
 
-        // Stilizare layout
+        // Inițializare date
+        selectedDate = LocalDate.now();
+
+        // Layout principal
         VerticalLayout layout = new VerticalLayout();
         layout.setSizeFull();
         layout.getStyle().set("padding", "10px");
 
         // Titlu
         Span title = new Span("Calendar cu Task-uri");
-        title.getStyle().set("font-size", "24px").set("font-weight", "bold");
+        title.getStyle().set("font-size", "24px").set("font-weight", "bold").set("margin-bottom", "20px");
         layout.add(title);
 
-        // Calendarul
-        Div calendarContainer = new Div();
-        calendarContainer.setId("calendar");
-        calendarContainer.setSizeFull();
-        calendarContainer.getStyle().set("border", "1px solid #ccc").set("margin-top", "20px");
+        // Selector săptămână și buton de actualizare
+        HorizontalLayout controls = new HorizontalLayout();
+        DatePicker datePicker = new DatePicker("Selectează săptămâna");
+        datePicker.setValue(selectedDate);
+        datePicker.addValueChangeListener(event -> {
+            if (event.getValue() != null) {
+                selectedDate = event.getValue(); // Actualizează data selectată
+                updateCalendar(selectedDate); // Recalculează săptămâna și actualizează calendarul
+            }
+        });
+
+        Button updateButton = new Button("Actualizează", event -> {
+            if (datePicker.getValue() != null) {
+                selectedDate = datePicker.getValue(); // Sincronizează data selectată
+                updateCalendar(selectedDate); // Actualizează calendarul
+            }
+        });
+
+        controls.add(datePicker, updateButton);
+        layout.add(controls);
+
+        // Calendar
+        calendarContainer = new Div(); // Inițializează containerul calendarului
+        calendarContainer.setWidthFull();
         layout.add(calendarContainer);
 
-        // Inițializare Calendar
-        initCalendar();
+        // Creează calendarul inițial
+        updateCalendar(selectedDate);
 
         add(layout);
     }
 
-    private void initCalendar() {
-        getElement().executeJs(
-                "const calendarEl = document.querySelector('#calendar');" +
-                        "if (calendarEl) {" +
-                        "   const calendar = new FullCalendar.Calendar(calendarEl, {" +
-                        "       initialView: 'dayGridMonth'," +
-                        "       headerToolbar: {" +
-                        "           left: 'prev,next today'," +
-                        "           center: 'title'," +
-                        "           right: 'dayGridMonth,timeGridWeek,timeGridDay'" +
-                        "       }," +
-                        "       events: $0" +
-                        "   });" +
-                        "   calendar.render();" +
-                        "} ",
-                getTaskEvents());
-    }
+    private Div createCalendar(LocalDate date) {
+        Div calendar = new Div();
+        calendar.setWidthFull();
+        calendar.getStyle().set("display", "grid")
+                .set("grid-template-columns", "repeat(7, 1fr)")
+                .set("gap", "10px");
 
-    private JsonArray getTaskEvents() {
-        JsonArray events = Json.createArray();
+        // Obține zilele săptămânii selectate
+        List<LocalDate> weekDays = getWeekDays(date);
 
-        // Exemplu de task-uri
-        events.set(0, createEvent("Task în execuție", "2025-01-15", "in-execution"));
-        events.set(1, createEvent("Task finalizat", "2025-01-10", "completed"));
-        events.set(2, createEvent("Alt task în execuție", "2025-01-20", "in-execution"));
+        for (LocalDate day : weekDays) {
+            // Coloană pentru fiecare zi
+            VerticalLayout dayColumn = new VerticalLayout();
+            dayColumn.getStyle().set("border", "1px solid #ccc")
+                    .set("border-radius", "5px")
+                    .set("padding", "10px");
 
-        return events;
-    }
+            // Afișează data zilei
+            Span dayLabel = new Span(day.toString());
+            dayLabel.getStyle().set("font-weight", "bold").set("margin-bottom", "10px");
+            dayColumn.add(dayLabel);
 
-    private JsonObject createEvent(String title, String date, String status) {
-        JsonObject event = Json.createObject();
-        event.put("title", title);
-        event.put("start", date);
+            // Adaugă task-uri pentru fiecare zi
+            List<TaskDTO> dayTasks = getTasksForDate(day);
+            if (dayTasks.isEmpty()) {
+                Span noTasks = new Span("Nu există task-uri.");
+                noTasks.getStyle().set("color", "gray").set("font-style", "italic");
+                dayColumn.add(noTasks);
+            } else {
+                for (TaskDTO task : dayTasks) {
+                    Div taskCard = createTaskCard(task);
+                    dayColumn.add(taskCard);
+                }
+            }
 
-        // Culoare în funcție de status
-        if ("completed".equals(status)) {
-            event.put("color", "green");
-        } else if ("in-execution".equals(status)) {
-            event.put("color", "blue");
-        } else {
-            event.put("color", "gray");
+            calendar.add(dayColumn);
         }
 
-        return event;
+        return calendar;
+    }
+
+    private Div createTaskCard(TaskDTO task) {
+        Div card = new Div();
+        card.setText(task.getDenumire() + " (" + task.getStatus() + ")");
+        card.getStyle().set("background-color", "lightblue") // Adaptează în funcție de status
+                .set("padding", "10px")
+                .set("border-radius", "5px")
+                .set("margin-bottom", "5px")
+                .set("font-size", "14px");
+        return card;
+    }
+
+    private void updateCalendar(LocalDate newDate) {
+        if (newDate != null) {
+            selectedDate = newDate; // Actualizează data selectată
+        }
+
+        // Elimină toate componentele din calendarContainer
+        calendarContainer.removeAll();
+
+        // Recreează zilele săptămânii în calendarContainer
+        Div updatedCalendar = createCalendar(selectedDate);
+        calendarContainer.add(updatedCalendar); // Adaugă noile componente
+    }
+
+    private List<LocalDate> getWeekDays(LocalDate date) {
+        // Obține toate zilele săptămânii curente
+        LocalDate startOfWeek = date.with(WeekFields.of(Locale.getDefault()).getFirstDayOfWeek());
+        List<LocalDate> days = new ArrayList<>();
+        for (int i = 0; i < 7; i++) {
+            days.add(startOfWeek.plusDays(i));
+        }
+        return days;
+    }
+
+    private List<TaskDTO> getTasksForDate(LocalDate date) {
+        // Obține toate task-urile și filtrează-le după data selectată
+        List<TaskDTO> allTasks = taskController.getAllTasks();
+        return allTasks.stream()
+                .filter(task -> task.getDeadline().equals(date))
+                .collect(Collectors.toList());
     }
 }
