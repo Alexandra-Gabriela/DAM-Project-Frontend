@@ -7,6 +7,7 @@ import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.dnd.DragSource;
 import com.vaadin.flow.component.dnd.DropEffect;
 import com.vaadin.flow.component.dnd.DropTarget;
+import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.notification.Notification;
@@ -25,9 +26,9 @@ import org.example.controllers.TaskController;
 import org.example.utils.HttpClientUtil;
 
 import jakarta.annotation.PostConstruct;
+
 import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @SpringComponent
 @PageTitle("Board de Task-uri")
@@ -35,6 +36,7 @@ import java.util.stream.Collectors;
 public class TaskBoardView extends VerticalLayout {
     private final TaskController taskController;
 
+    private boolean isListView = false;
 
     private final VerticalLayout toDoColumn = new VerticalLayout();
     private final VerticalLayout inProgressColumn = new VerticalLayout();
@@ -64,16 +66,19 @@ public class TaskBoardView extends VerticalLayout {
         searchField.addValueChangeListener(event -> {
             TaskDTO selectedTask = event.getValue();
             if (selectedTask != null) {
-                showTaskDetailsModal(selectedTask); // Afișăm detaliile task-ului selectat
+                showTaskDetailsModal(selectedTask);
             }
         });
-        // Iconițe
+
         Button insightsButton = new Button("Insights");
         Button settingsButton = new Button("Settings");
         Button completeSprintButton = new Button("Complete Sprint");
         completeSprintButton.getStyle()
                 .set("background-color", "#007bff")
                 .set("color", "white");
+
+        Button toggleViewButton = new Button("Comută Vizualizarea");
+        toggleViewButton.addClickListener(e -> toggleView());
 
         // Layout pentru membrii echipei
         HorizontalLayout membersLayout = new HorizontalLayout();
@@ -108,15 +113,120 @@ public class TaskBoardView extends VerticalLayout {
             }
         }
 
+        Span addMemberBubble = new Span("+");
+        addMemberBubble.getStyle()
+                .set("border-radius", "50%")
+                .set("background-color", "#007bff")
+                .set("width", "30px")
+                .set("height", "30px")
+                .set("display", "inline-block")
+                .set("text-align", "center")
+                .set("line-height", "30px")
+                .set("color", "white")
+                .set("cursor", "pointer");
+
+// Eveniment pentru deschiderea dialogului de adăugare membru
+        addMemberBubble.addClickListener(event -> showAddMemberDialog(membersLayout));
+        membersLayout.add(addMemberBubble);
 
         // Layout final
-        HorizontalLayout topBar = new HorizontalLayout(searchField, membersLayout, insightsButton, settingsButton, completeSprintButton);
+        HorizontalLayout topBar = new HorizontalLayout(searchField, membersLayout, insightsButton, settingsButton, completeSprintButton, toggleViewButton);
         topBar.setWidthFull();
         topBar.setJustifyContentMode(JustifyContentMode.BETWEEN);
         topBar.setAlignItems(Alignment.CENTER);
 
         return topBar;
     }
+    private void toggleView() {
+        removeAll();
+        if (isListView) {
+            setupKanbanBoard();
+        } else {
+            showListView();
+        }
+        isListView = !isListView;
+    }
+    private void showListView() {
+        VerticalLayout listView = new VerticalLayout();
+
+        // Buton de revenire la board
+        Button backButton = new Button("Înapoi la Board", e -> {
+            removeAll();
+            setupKanbanBoard();
+            isListView = false;
+        });
+        listView.add(backButton);
+
+        // Lista task-urilor în format simplu
+        List<TaskDTO> tasks = taskController.getAllTasks();
+        if (tasks == null || tasks.isEmpty()) {
+            Notification.show("Nu există task-uri de afișat.");
+            return;
+        }
+        // Adăugare task-uri în listă
+        Grid<TaskDTO> taskGrid = new Grid<>(TaskDTO.class, false);
+        taskGrid.addColumn(TaskDTO::getDenumire).setHeader("Denumire");
+        taskGrid.addColumn(task -> task.getStatus() != null ? task.getStatus().toString() : "").setHeader("Status");
+        taskGrid.addColumn(task -> task.getDeadline() != null ? task.getDeadline().toString() : "").setHeader("Deadline");
+
+        taskGrid.setItems(tasks);
+
+        // Eveniment de click pe rând pentru detalii
+        taskGrid.addItemClickListener(event -> showTaskDetailsModal(event.getItem()));
+
+        listView.add(taskGrid);
+
+        add(listView);
+    }
+    private void showAddMemberDialog(HorizontalLayout membersLayout) {
+        Dialog addMemberDialog = new Dialog();
+        addMemberDialog.setWidth("400px");
+
+        ComboBox<UtilizatorDTO> memberComboBox = new ComboBox<>("Alege un membru");
+        memberComboBox.setItems(getAllMembers());
+        memberComboBox.setItemLabelGenerator(UtilizatorDTO::getNume);
+
+        Button addButton = new Button("Adaugă", e -> {
+            UtilizatorDTO selectedMember = memberComboBox.getValue();
+            if (selectedMember != null) {
+                String initiale = selectedMember.getNume().substring(0, 1);
+                Span memberBubble = new Span(initiale);
+                memberBubble.getStyle()
+                        .set("border-radius", "50%")
+                        .set("background-color", "#cccccc")
+                        .set("width", "30px")
+                        .set("height", "30px")
+                        .set("display", "inline-block")
+                        .set("text-align", "center")
+                        .set("line-height", "30px")
+                        .set("cursor", "pointer");
+
+                memberBubble.getElement().setProperty("title",
+                        "Nume: " + selectedMember.getNume() +
+                                "\nEchipa: " + selectedMember.getTipUtilizator() +
+                                "\nContact: " + selectedMember.getEmail());
+
+                membersLayout.add(memberBubble);
+                addMemberDialog.close();
+            } else {
+                Notification.show("Te rog să selectezi un membru!");
+            }
+        });
+
+        Button cancelButton = new Button("Anulează", e -> addMemberDialog.close());
+
+        HorizontalLayout buttonsLayout = new HorizontalLayout(addButton, cancelButton);
+        VerticalLayout dialogLayout = new VerticalLayout(memberComboBox, buttonsLayout);
+        dialogLayout.setSpacing(true);
+
+        addMemberDialog.add(dialogLayout);
+        addMemberDialog.open();
+    }
+
+
+
+
+
     private void showTaskDetailsModal(TaskDTO task) {
         Dialog detailsDialog = new Dialog();
         detailsDialog.setWidth("400px");
@@ -151,10 +261,15 @@ public class TaskBoardView extends VerticalLayout {
     }
 
     private void setupKanbanBoard() {
-        // Adăugăm titluri pentru fiecare coloană
+     ;
 
-        toDoColumn.add(new Span("To-Do"));
+        Span toDoTitle = new Span("To-Do");
+        Button addTaskButton = new Button("Adaugă Task", e -> showAddTaskDialog(null));
+        VerticalLayout toDoHeader = new VerticalLayout(toDoTitle, addTaskButton);
+        toDoHeader.getStyle().set("border", "1px solid lightgray").set("padding", "10px");
+        toDoColumn.add(toDoHeader);
         toDoColumn.getStyle().set("border", "1px solid lightgray").set("padding", "10px");
+
 
         inProgressColumn.add(new Span("In Progress"));
         inProgressColumn.getStyle().set("border", "1px solid lightgray").set("padding", "10px");

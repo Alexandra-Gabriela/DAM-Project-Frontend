@@ -4,10 +4,12 @@ import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.datepicker.DatePicker;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Span;
+import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.Route;
 import org.example.DTO.TaskDTO;
+import org.example.DTO.UtilizatorDTO;
 import org.example.controllers.TaskController;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -156,4 +158,6 @@ public class DefaultView extends Div {
                 .filter(task -> task.getDeadline().equals(date))
                 .collect(Collectors.toList());
     }
+
+
 }
