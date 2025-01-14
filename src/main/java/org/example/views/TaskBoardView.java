@@ -54,11 +54,19 @@ public class TaskBoardView extends VerticalLayout {
     }
 
     private HorizontalLayout createTopBar() {
-        // Căutare
-        TextField searchField = new TextField();
-        searchField.setPlaceholder("Search");
+        ComboBox<TaskDTO> searchField = new ComboBox<>();
+        searchField.setPlaceholder("Caută task-uri...");
         searchField.setWidth("300px");
+        searchField.setItems(taskController.getAllTasks());
+        searchField.setItemLabelGenerator(TaskDTO::getDenumire);
 
+// Listener pentru selectare
+        searchField.addValueChangeListener(event -> {
+            TaskDTO selectedTask = event.getValue();
+            if (selectedTask != null) {
+                showTaskDetailsModal(selectedTask); // Afișăm detaliile task-ului selectat
+            }
+        });
         // Iconițe
         Button insightsButton = new Button("Insights");
         Button settingsButton = new Button("Settings");
@@ -70,20 +78,38 @@ public class TaskBoardView extends VerticalLayout {
         // Layout pentru membrii echipei
         HorizontalLayout membersLayout = new HorizontalLayout();
         membersLayout.setSpacing(true);
-        for (int i = 0; i < 5; i++) { // Exemplu de 5 membri
-            Span member = new Span("M" + (i + 1));
-            member.getStyle()
-                    .set("border-radius", "50%")
-                    .set("background-color", "#cccccc")
-                    .set("width", "30px")
-                    .set("height", "30px")
-                    .set("display", "inline-block")
-                    .set("text-align", "center")
-                    .set("line-height", "30px");
-            membersLayout.add(member);
+
+        List<UtilizatorDTO> membriEchipa = getAllMembers();
+        if (membriEchipa.isEmpty()) {
+            Span noMembers = new Span("Fără membri");
+            membersLayout.add(noMembers);
+        } else {
+            for (UtilizatorDTO membru : membriEchipa) {
+                // Inițialele membrului
+                String initiale = membru.getNume().substring(0, 1);
+                Span memberBubble = new Span(initiale);
+                memberBubble.getStyle()
+                        .set("border-radius", "50%")
+                        .set("background-color", "#cccccc")
+                        .set("width", "30px")
+                        .set("height", "30px")
+                        .set("display", "inline-block")
+                        .set("text-align", "center")
+                        .set("line-height", "30px")
+                        .set("cursor", "pointer");
+
+                // Tooltip cu detalii
+                memberBubble.getElement().setProperty("title",
+                        "Nume: " + membru.getNume() + " "  +
+                                "\nEchipa: " + membru.getTipUtilizator() +
+                                "\nContact: " + membru.getEmail());
+
+                membersLayout.add(memberBubble);
+            }
         }
 
-        // Adăugăm butoanele și câmpurile în bara de sus
+
+        // Layout final
         HorizontalLayout topBar = new HorizontalLayout(searchField, membersLayout, insightsButton, settingsButton, completeSprintButton);
         topBar.setWidthFull();
         topBar.setJustifyContentMode(JustifyContentMode.BETWEEN);
@@ -91,6 +117,33 @@ public class TaskBoardView extends VerticalLayout {
 
         return topBar;
     }
+    private void showTaskDetailsModal(TaskDTO task) {
+        Dialog detailsDialog = new Dialog();
+        detailsDialog.setWidth("400px");
+
+        // Titlu
+        Span title = new Span("Detalii Task");
+        title.getStyle().set("font-weight", "bold");
+
+        // Informații despre task
+        Span name = new Span("Denumire: " + task.getDenumire());
+        Span description = new Span("Descriere: " + (task.getDescriere() != null ? task.getDescriere() : "N/A"));
+        Span status = new Span("Status: " + (task.getStatus() != null ? task.getStatus().toString() : "N/A"));
+        Span deadline = new Span("Deadline: " + (task.getDeadline() != null ? task.getDeadline().toString() : "N/A"));
+
+        // Layout pentru informații
+        VerticalLayout infoLayout = new VerticalLayout(title, name, description, status, deadline);
+        infoLayout.setSpacing(true);
+
+        // Buton de închidere
+        Button closeButton = new Button("Închide", e -> detailsDialog.close());
+        closeButton.getStyle().set("color", "red");
+
+        // Adăugăm totul în dialog
+        detailsDialog.add(infoLayout, closeButton);
+        detailsDialog.open();
+    }
+
 
     @PostConstruct
     public void init() {
@@ -215,8 +268,13 @@ public class TaskBoardView extends VerticalLayout {
 
                 if (task != null) {
                     task.setStatus(targetStatus);
-                    taskController.saveTask(task);
-                    refreshTasks();
+                    try {
+                        taskController.saveTask(task);
+                        refreshTasks();
+                        Notification.show("Task mutat cu succes în " + targetStatus.toString() + "!");
+                    } catch (Exception ex) {
+                        Notification.show("Eroare la actualizarea task-ului: " + ex.getMessage());
+                    }
                 }
             });
         });
