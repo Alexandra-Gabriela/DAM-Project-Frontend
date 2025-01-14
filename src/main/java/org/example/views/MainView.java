@@ -5,6 +5,7 @@ import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.router.Router;
 import com.vaadin.flow.router.RouterLink;
 import com.vaadin.flow.router.RouterLayout;
 import com.vaadin.flow.server.VaadinSession;
@@ -38,12 +39,16 @@ public class MainView extends AppLayout implements RouterLayout {
         RouterLink homeLink = new RouterLink("🏠 Acasă", DefaultView.class);
         RouterLink projectsLink = new RouterLink("📁 Proiecte", ProjectsView.class);
         RouterLink tasksLink = new RouterLink("📝 Task-uri", TaskBoardView.class);
+        RouterLink departmentsLink= new RouterLink("Departamente", DepartamenteView.class);
+        RouterLink teamsLink= new RouterLink("Echipe", EchipeView.class);
 
         sidebar.add(
                 new Span("Meniu"),
                 homeLink,
                 projectsLink,
-                tasksLink
+                tasksLink,
+               departmentsLink,
+                teamsLink
         );
 
         return sidebar;
