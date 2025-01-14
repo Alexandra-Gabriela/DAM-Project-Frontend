@@ -77,4 +77,29 @@ public class DepartamentController {
             return List.of(); // Returnează o listă goală în cazul unei erori
         }
     }
+    public List<UtilizatorDTO> vizualizeazaMembriiDepartament(int departamentId) {
+        try {
+            String url = BASE_URL + "/" + departamentId + "/membri";
+            UtilizatorDTO[] membri = HttpClientUtil.get(url, UtilizatorDTO[].class);
+
+            if (membri == null || membri.length == 0) {
+                return List.of(); // Returnează o listă goală dacă nu sunt membri
+            }
+
+            return Arrays.asList(membri); // Returnează lista de membri
+        } catch (Exception e) {
+            System.err.println("Eroare la încărcarea membrilor departamentului: " + e.getMessage());
+            e.printStackTrace();
+            return List.of(); // Returnează o listă goală în cazul unei erori
+        }
+    }
+    public void adaugaMembruLaDepartament(Integer departamentId, UtilizatorDTO utilizator) {
+        try {
+            String url = BASE_URL + "/" + departamentId + "/utilizatori";
+            HttpClientUtil.post(url, utilizator, Void.class);
+        } catch (Exception e) {
+            throw new RuntimeException("Eroare la adăugarea membrului în departament: " + e.getMessage());
+        }
+    }
+
 }

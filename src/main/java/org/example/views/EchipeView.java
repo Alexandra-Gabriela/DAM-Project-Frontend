@@ -46,7 +46,6 @@ public class EchipeView extends VerticalLayout {
         echipeGrid.addColumn(EchipaDTO::getDenumire).setHeader("Denumire").setSortable(true);
         echipeGrid.addColumn(echipa -> echipa.isArhivata() ? "Da" : "Nu").setHeader("Arhivata").setSortable(true);
 
-
         echipeGrid.addComponentColumn(echipa -> {
             Button editButton = new Button("Edit", e -> showAddTeamDialog(echipa));
             Button deleteButton = new Button("Delete", e -> {
@@ -58,6 +57,8 @@ public class EchipeView extends VerticalLayout {
             });
 
             deleteButton.getStyle().set("color", "red");
+
+
             return new HorizontalLayout(editButton, deleteButton);
         }).setHeader("Acțiuni");
     }

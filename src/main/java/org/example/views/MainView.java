@@ -39,8 +39,8 @@ public class MainView extends AppLayout implements RouterLayout {
         RouterLink homeLink = new RouterLink("🏠 Acasă", DefaultView.class);
         RouterLink projectsLink = new RouterLink("📁 Proiecte", ProjectsView.class);
         RouterLink tasksLink = new RouterLink("📝 Task-uri", TaskBoardView.class);
-        RouterLink departmentsLink= new RouterLink("Departamente", DepartamenteView.class);
-        RouterLink teamsLink= new RouterLink("Echipe", EchipeView.class);
+        RouterLink departmentsLink= new RouterLink("🏢 Departamente", DepartamenteView.class);
+        RouterLink teamsLink= new RouterLink("👥 Echipe", EchipeView.class);
 
         sidebar.add(
                 new Span("Meniu"),
