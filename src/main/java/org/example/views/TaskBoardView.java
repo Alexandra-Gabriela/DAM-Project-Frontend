@@ -1,5 +1,6 @@
 package org.example.views;
 
+import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.datepicker.DatePicker;
@@ -23,6 +24,7 @@ import org.example.DTO.Status;
 import org.example.DTO.TaskDTO;
 import org.example.DTO.UtilizatorDTO;
 import org.example.controllers.TaskController;
+import org.example.controllers.UtilizatorController;
 import org.example.utils.HttpClientUtil;
 
 import jakarta.annotation.PostConstruct;
@@ -476,22 +478,24 @@ public class TaskBoardView extends VerticalLayout {
 
     private List<UtilizatorDTO> getAllMembers() {
         try {
-            String url = "http://localhost:8083/team/rest/utilizatori/membri";
-            UtilizatorDTO[] utilizatori = HttpClientUtil.get(url, UtilizatorDTO[].class);
+            UtilizatorController utilizatorController = new UtilizatorController();
+            List<UtilizatorDTO> membri = utilizatorController.getAllMembri();
 
-            if (utilizatori == null || utilizatori.length == 0) {
-                Notification.show("Lista membrilor este goală.");
+            if (membri == null || membri.isEmpty()) {
+                // Folosim UI.access() pentru a ne asigura că Notification.show() este apelată pe thread-ul UI
+                UI.getCurrent().access(() -> Notification.show("Lista membrilor este goală."));
                 return List.of();
             }
-
-            return Arrays.asList(utilizatori);
+            return membri;
         } catch (Exception e) {
-            Notification.show("Eroare la încărcarea membrilor: " + e.getMessage());
+            // Folosim UI.access() și aici pentru a arăta eroarea într-un context valid de UI
+            UI.getCurrent().access(() -> Notification.show("Eroare la încărcarea membrilor: " + e.getMessage()));
             e.printStackTrace();
             return List.of();
         }
-
     }
+
+
     private boolean confirm(String message) {
         return true;
     }

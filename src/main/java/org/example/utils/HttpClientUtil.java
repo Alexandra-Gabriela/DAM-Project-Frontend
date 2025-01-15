@@ -3,7 +3,11 @@ package org.example.utils;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import org.example.DTO.UtilizatorDTO;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -13,6 +17,7 @@ import java.net.URL;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.util.List;
 
 public class HttpClientUtil {
 
@@ -20,6 +25,9 @@ public class HttpClientUtil {
             .enable(DeserializationFeature.READ_ENUMS_USING_TO_STRING)
             .enable(SerializationFeature.WRITE_ENUMS_USING_TO_STRING);
 
+    private static final RestTemplate restTemplate = new RestTemplate();
+
+    // GET method for a single response
     public static <T> T get(String urlString, Class<T> responseType) {
         HttpURLConnection conn = null;
         try {
@@ -49,6 +57,17 @@ public class HttpClientUtil {
         return null;
     }
 
+    // GET method for lists (using ParameterizedTypeReference)
+    public static <T> T get(String urlString, ParameterizedTypeReference<T> responseType) {
+        return restTemplate.exchange(urlString, HttpMethod.GET, null, responseType).getBody();
+    }
+
+    // Helper method to retrieve list of UtilizatorDTO objects
+    public static List<UtilizatorDTO> getUtilizatoriList(String urlString) {
+        return get(urlString, new ParameterizedTypeReference<List<UtilizatorDTO>>() {});
+    }
+
+    // POST method for sending data
     public static <T> T post(String url, Object body, Class<T> responseType) throws Exception {
         String response = null;
         try {
@@ -80,21 +99,7 @@ public class HttpClientUtil {
         }
     }
 
-    public static void delete(String url) {
-        RestTemplate restTemplate = new RestTemplate();
-        restTemplate.delete(url);
-    }
-
-    private static void printErrorStream(HttpURLConnection conn) {
-        try (InputStream errorStream = conn.getErrorStream()) {
-            if (errorStream != null) {
-                String errorResponse = new String(errorStream.readAllBytes());
-                System.err.println("Error Response: " + errorResponse);
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
+    // PUT method for sending data
     public static <T> T put(String url, Object body, Class<T> responseType) throws Exception {
         String response = null;
         try {
@@ -126,4 +131,20 @@ public class HttpClientUtil {
         }
     }
 
+    // DELETE method for sending data
+    public static void delete(String url) {
+        restTemplate.delete(url);
+    }
+
+    // Helper method to print error response from server
+    private static void printErrorStream(HttpURLConnection conn) {
+        try (InputStream errorStream = conn.getErrorStream()) {
+            if (errorStream != null) {
+                String errorResponse = new String(errorStream.readAllBytes());
+                System.err.println("Error Response: " + errorResponse);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 }

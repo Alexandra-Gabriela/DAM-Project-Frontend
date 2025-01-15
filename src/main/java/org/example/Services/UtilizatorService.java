@@ -6,32 +6,34 @@ import org.example.utils.HttpClientUtil;
 import java.util.List;
 
 public class UtilizatorService {
-    private static final String BASE_URL = "http://localhost:8083/team/rest/utilizatori";
+    private static final String BASE_URL = "http://localhost:8083/team/rest/servicii/utilizatori";
 
+    // Metodă pentru a obține toți utilizatorii
     public List<UtilizatorDTO> getAllUtilizatori() {
-        return HttpClientUtil.get(BASE_URL, List.class);
+        return HttpClientUtil.getUtilizatoriList(BASE_URL);
     }
 
+    // Metodă pentru a obține un utilizator după ID
     public UtilizatorDTO getUtilizatorById(int id) {
         return HttpClientUtil.get(BASE_URL + "/" + id, UtilizatorDTO.class);
     }
 
+    // Metodă pentru a obține liderii
     public List<UtilizatorDTO> getAllLideri() {
-        return HttpClientUtil.get(BASE_URL + "/lideri", List.class);
+        return HttpClientUtil.getUtilizatoriList(BASE_URL + "/lideri");
     }
 
-    public List<UtilizatorDTO> getAllMembri() {
-        return HttpClientUtil.get(BASE_URL + "/membri", List.class);
-    }
-
+    // Metodă pentru a crea un utilizator
     public UtilizatorDTO createUtilizator(UtilizatorDTO utilizator) throws Exception {
         return HttpClientUtil.post(BASE_URL, utilizator, UtilizatorDTO.class);
     }
 
+    // Metodă pentru a actualiza un utilizator
     public UtilizatorDTO updateUtilizator(int id, UtilizatorDTO utilizator) throws Exception {
         return HttpClientUtil.put(BASE_URL + "/" + id, utilizator, UtilizatorDTO.class);
     }
 
+    // Metodă pentru a șterge un utilizator
     public void deleteUtilizator(int id) {
         HttpClientUtil.delete(BASE_URL + "/" + id);
     }

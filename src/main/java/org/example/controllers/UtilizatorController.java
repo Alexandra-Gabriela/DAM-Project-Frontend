@@ -25,8 +25,14 @@ public class UtilizatorController {
     }
 
     public void afiseazaMembri() {
-        List<UtilizatorDTO> membri = utilizatorService.getAllMembri();
+        List<UtilizatorDTO> membri = utilizatorService.getAllUtilizatori();
         membri.forEach(System.out::println);
+    }
+    public List<UtilizatorDTO> getAllMembri() {
+        return utilizatorService.getAllUtilizatori();
+    }
+    public List<UtilizatorDTO> getAllLideri() {
+        return utilizatorService.getAllLideri();
     }
 
     public void creeazaUtilizator(UtilizatorDTO utilizator) {

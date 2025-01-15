@@ -19,6 +19,7 @@ import jakarta.annotation.PostConstruct;
 import org.example.DTO.ProiectDTO;
 import org.example.DTO.UtilizatorDTO;
 import org.example.controllers.ProjectController;
+import org.example.controllers.UtilizatorController;
 import org.example.utils.HttpClientUtil;
 
 import java.text.SimpleDateFormat;
@@ -155,15 +156,14 @@ public class ProjectsView extends VerticalLayout {
 
     private List<UtilizatorDTO> getAllLideri() {
         try {
-            String url = "http://localhost:8083/team/rest/utilizatori/lideri";
-            UtilizatorDTO[] utilizatori = HttpClientUtil.get(url, UtilizatorDTO[].class);
+            UtilizatorController utilizatorController = new UtilizatorController();
+            List<UtilizatorDTO> lideri = utilizatorController.getAllLideri();
 
-            if (utilizatori == null || utilizatori.length == 0) {
+            if (lideri == null || lideri.isEmpty()) {
                 Notification.show("Lista liderilor este goală.");
                 return List.of();
             }
-
-            return Arrays.asList(utilizatori);
+            return lideri;
         } catch (Exception e) {
             Notification.show("Eroare la încărcarea liderilor: " + e.getMessage());
             e.printStackTrace();
