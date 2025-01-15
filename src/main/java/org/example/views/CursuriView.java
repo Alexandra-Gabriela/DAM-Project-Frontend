@@ -23,6 +23,7 @@ import org.example.Services.UtilizatorService;
 import org.example.controllers.CursuriController;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @SpringComponent
@@ -85,16 +86,18 @@ public class CursuriView extends VerticalLayout {
         return mainContent;
     }
     private VerticalLayout sidebar;
+    private List<UtilizatorDTO> utilizatoriSelectati = new ArrayList<>();
+
     private VerticalLayout createSidebar() {
-        DatePicker calendar = new DatePicker();
-        calendar.setLabel("Select Date");
-        calendar.setWidthFull();
 
         sidebar = new VerticalLayout();
         sidebar.setWidth("300px");
         sidebar.add(new H4("Assigned Users"));
-        add(sidebar);
 
+        DatePicker calendar = new DatePicker();
+        calendar.setLabel("Select Date");
+        calendar.setWidthFull();
+        sidebar.add(calendar);
 
         return sidebar;
     }
@@ -167,8 +170,11 @@ public class CursuriView extends VerticalLayout {
             UtilizatorDTO selectedUser = userComboBox.getValue();
             if (selectedUser != null) {
                 try {
+                    // Adăugare utilizator selectat la curs și în sidebar
                     List<Integer> userIds = List.of(selectedUser.getUserId());
                     cursuriController.asigneazaUtilizatoriLaCurs(curs.getId(), userIds);
+                    utilizatoriSelectati.add(selectedUser);
+                    updateSidebar(); // Actualizează sidebar-ul
                     Notification.show("User assigned successfully!");
                     dialog.close();
                 } catch (Exception e) {
@@ -186,7 +192,25 @@ public class CursuriView extends VerticalLayout {
         dialog.open();
     }
 
+    private void updateSidebar() {
+        // Curăță sidebar-ul înainte de a adăuga utilizatorii selectați
+        sidebar.removeAll();
 
+
+        DatePicker calendar = new DatePicker();
+        calendar.setLabel("Select Date");
+        calendar.setWidthFull();
+        sidebar.add(calendar);
+        sidebar.add(new H4("Assigned Users"));
+
+
+        // Adaugă utilizatorii selectați
+        utilizatoriSelectati.forEach(user -> {
+            Div userDiv = new Div();
+            userDiv.setText(user.getNume());
+            sidebar.add(userDiv);
+        });
+    }
     private void openAddCourseDialog() {
         Dialog dialog = new Dialog();
         dialog.setHeaderTitle("Add New Course");
