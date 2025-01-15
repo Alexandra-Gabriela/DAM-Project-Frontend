@@ -32,6 +32,10 @@ public class UtilizatorService {
     public UtilizatorDTO updateUtilizator(int id, UtilizatorDTO utilizator) throws Exception {
         return HttpClientUtil.put(BASE_URL + "/" + id, utilizator, UtilizatorDTO.class);
     }
+    // Metodă pentru a obține toți utilizatorii de tip ADMIN
+    public List<UtilizatorDTO> getAllAdmini() {
+        return HttpClientUtil.getUtilizatoriList(BASE_URL + "/admini");
+    }
 
     // Metodă pentru a șterge un utilizator
     public void deleteUtilizator(int id) {
